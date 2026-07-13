@@ -16,16 +16,12 @@ pipeline {
         stage('Create Docker Image') {
             steps {
                 script {
-                    withCredentials([
-                        usernamePassword(
-                            credentialsId: 'dockerhub-credentials',
-                            usernameVariable: 'USER',
-                            passwordVariable: 'PASS'
-                        )
-                    ]) {
+                    sshagent(credentials:['github-ssh-key']) {
+                        
                         sh 'docker build -t myapp:latest .'
                         sh 'echo $PASS | docker login -u $USER --password-stdin'
-                        sh 'docker push <your-dockerhub-username>/myapp:latest'
+                        sh 'docker push <cc3625>/myapp:latest'
+                    
                     }
                 }
             }
