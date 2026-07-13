@@ -3,6 +3,7 @@ pipeline {
     environment{
         AWS_DEFAULT_REGION = 'us-east-1'
         ECR_ENDPOINT = 'http://10.43.37.199:4566'
+        
         ECR_REGISTRY='10.43.37.199:5100'
         ECR_REPOSITORY = 'my-test-repo'
 
@@ -10,7 +11,6 @@ pipeline {
         IMAGE_TAG = 'latest'
     }
 
-    stages {
         stage('Login to AWS ECR') {
     steps {
         withCredentials([
@@ -18,13 +18,14 @@ pipeline {
             string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
         ]) {
             sh '''
+                echo "Checking credentials..."
+                env | grep AWS
+
+                aws configure list
+
                 aws ecr get-login-password \
-                --endpoint-url=$ECR_ENDPOINT \
-                --region=$AWS_DEFAULT_REGION \
-                | docker login \
-                    --username AWS \
-                    --password-stdin \
-                    $ECR_REGISTRY
+                  --endpoint-url=http://10.43.37.199:4566 \
+                  --region us-east-1 | wc -c
             '''
         }
     }
