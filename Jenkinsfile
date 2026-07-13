@@ -24,7 +24,7 @@ pipeline {
                         aws ecr get-login-password \
                         --endpoint-url $ECR_ENDPOINT \
                         --region $AWS_DEFAULT_REGION  \
-                         docker login \
+                        | docker login \
                        --username AWS \
                         --password-stdin $ECR_REGISTRY
 
