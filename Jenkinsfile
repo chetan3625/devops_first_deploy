@@ -21,17 +21,13 @@ pipeline {
                     string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     sh '''
-                        echo "===== Checking AWS Environment ====="
-
-                        env | grep AWS
-
-                        echo ""
-                        aws configure list
-
-                        echo ""
                         aws ecr get-login-password \
-                          --endpoint-url=$ECR_ENDPOINT \
-                          --region=$AWS_DEFAULT_REGION | wc -c
+                        --endpoint-url $ECR_ENDPOINT \
+                        --region $AWS_DEFAULT_REGION  \
+                        | docker login \
+\                        --username AWS \
+                        --password-stdin $ECR_REGISTRY
+
                     '''
                 }
             }
