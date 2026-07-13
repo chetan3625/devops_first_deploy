@@ -3,7 +3,7 @@ pipeline {
     environment{
         AWS_DEFAULT_REGION = 'us-east-1'
         ECR_ENDPOINT = 'http://10.43.37.199:4566'
-        ECR_REGISTRY = '000000000000.dkr.ecr.us-east-1.localhost:5100'
+        ECR_REGISTRY='10.43.37.199:5100'
         ECR_REPOSITORY = 'my-test-repo'
 
         IMAGE_NAME = 'my-app'
