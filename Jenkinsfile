@@ -1,35 +1,40 @@
-pipeline{
+pipeline {
     agent any
-    stage("build web"){
-        steps{
-            script{
 
-                sh 'flutter pub get'
-                sh 'flutter build web'
-                echo "build web success"
-            }
-        }
+    stages {
 
-    }
-    stage("create docker image"){
-        steps{
-            script{
-                withCredentials([usernamePassword(credentialsId:"github-ssh-key",passwordVariable:'PASS',usernameVariable:"USER")]){
-                    sh 'docker build -t myapp:latest .'
-                    sh "docker login -u $USER -p $PASS"
-                    sh 'docker push myapp:latest'
-
+        stage('Build Web') {
+            steps {
+                script {
+                    sh 'flutter pub get'
+                    sh 'flutter build web'
+                    echo 'Build Web Success'
                 }
-               
             }
         }
-    }
-    stage("deploy"){
-        steps{
-            script{
 
+        stage('Create Docker Image') {
+            steps {
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'dockerhub-credentials',
+                            usernameVariable: 'USER',
+                            passwordVariable: 'PASS'
+                        )
+                    ]) {
+                        sh 'docker build -t myapp:latest .'
+                        sh 'echo $PASS | docker login -u $USER --password-stdin'
+                        sh 'docker push <your-dockerhub-username>/myapp:latest'
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
             }
         }
     }
-    
 }
