@@ -33,15 +33,19 @@ pipeline {
             }
         }
 
-        stage('Build Web') {
+        stage('Tag Docker Image') {
             steps {
-                echo 'Building Web Application...'
+                sh '''
+                docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY/$IMAGE_NAME:$IMAGE_TAG
+                 '''
             }
         }
 
-        stage('Create Docker Image') {
+        stage('Push Docker Image to ECR') {
             steps {
-                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
+                sh '''
+                docker push $ECR_REGISTRY/$ECR_REPOSITORY/$IMAGE_NAME:$IMAGE_TAG 
+                '''
             }
         }
 
