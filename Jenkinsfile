@@ -1,40 +1,45 @@
 pipeline {
     agent any
-    environment{
-        AWS_DEFAULT_REGION = 'us-east-1'
-        ECR_ENDPOINT = 'http://10.43.37.199:4566'
-        
-        ECR_REGISTRY='10.43.37.199:5100'
-        ECR_REPOSITORY = 'my-test-repo'
 
-        IMAGE_NAME = 'my-app'
-        IMAGE_TAG = 'latest'
+    environment {
+        AWS_DEFAULT_REGION = 'us-east-1'
+        ECR_ENDPOINT       = 'http://10.43.37.199:4566'
+
+        ECR_REGISTRY       = '10.43.37.199:5100'
+        ECR_REPOSITORY     = 'my-test-repo'
+
+        IMAGE_NAME         = 'my-app'
+        IMAGE_TAG          = 'latest'
     }
+
+    stages {
 
         stage('Login to AWS ECR') {
-    steps {
-        withCredentials([
-            string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
-            string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
-        ]) {
-            sh '''
-                echo "Checking credentials..."
-                env | grep AWS
+            steps {
+                withCredentials([
+                    string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    sh '''
+                        echo "===== Checking AWS Environment ====="
 
-                aws configure list
+                        env | grep AWS
 
-                aws ecr get-login-password \
-                  --endpoint-url=http://10.43.37.199:4566 \
-                  --region us-east-1 | wc -c
-            '''
+                        echo ""
+                        aws configure list
+
+                        echo ""
+                        aws ecr get-login-password \
+                          --endpoint-url=$ECR_ENDPOINT \
+                          --region=$AWS_DEFAULT_REGION | wc -c
+                    '''
+                }
+            }
         }
-    }
-}
+
         stage('Build Web') {
             steps {
-                script {
-                    echo 'Building Web Application...'
-                }
+                echo 'Building Web Application...'
             }
         }
 
@@ -50,3 +55,4 @@ pipeline {
             }
         }
     }
+}
