@@ -16,6 +16,8 @@ pipeline {
         IMAGE_TAG          = 'latest'
     }
 
+
+
     stages {
 
         stage('Login to AWS ECR') {
