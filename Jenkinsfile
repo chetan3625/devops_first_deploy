@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
+
     environment {
         AWS_DEFAULT_REGION = 'us-east-1'
         ECR_ENDPOINT       = 'http://10.6.117.1:4566'
