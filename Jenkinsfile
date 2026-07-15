@@ -5,11 +5,16 @@ pipeline {
         githubPush()
     }
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     environment {
         AWS_DEFAULT_REGION = 'us-east-1'
         ECR_ENDPOINT       = 'http://10.6.117.1:4566'
         ECR_REGISTRY       = '10.6.117.1:5100'
         ECR_REPOSITORY     = 'my-test-repo'
+
         IMAGE_NAME         = 'my-app'
     }
 
@@ -27,7 +32,9 @@ pipeline {
 
                     sh '''
                         export PATH=$PATH:$HOME/.pub-cache/bin
+
                         cider bump minor
+
                         flutter pub get
                     '''
 
@@ -40,8 +47,28 @@ pipeline {
                     env.APP_VERSION = version
                     env.IMAGE_TAG = version.replace('+', '-')
 
-                    echo "Flutter Version : ${env.APP_VERSION}"
-                    echo "Docker Tag       : ${env.IMAGE_TAG}"
+                    echo "Flutter Version : ${APP_VERSION}"
+                    echo "Docker Tag       : ${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Commit Version') {
+            steps {
+                sshagent(credentials: ['github-ssh-key']) {
+
+                    sh '''
+                        git config user.name "Jenkins CI"
+                        git config user.email "jenkins@example.com"
+
+                        git add pubspec.yaml
+                        git add pubspec.lock
+
+                        git diff --cached --quiet || \
+                        git commit -m "ci: bump version to ${APP_VERSION}"
+
+                        git push origin HEAD:main
+                    '''
                 }
             }
         }
@@ -61,6 +88,7 @@ pipeline {
                     string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
+
                     sh '''
                         aws ecr get-login-password \
                         --endpoint-url ${ECR_ENDPOINT} \
@@ -103,12 +131,13 @@ pipeline {
             steps {
                 echo "Application Version : ${APP_VERSION}"
                 echo "Docker Image Tag    : ${IMAGE_TAG}"
-                echo "Deployment Completed"
+                echo "Deployment Completed Successfully."
             }
         }
     }
 
     post {
+
         success {
             echo "Pipeline executed successfully."
         }
