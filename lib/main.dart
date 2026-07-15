@@ -173,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Text(
                   _statusMessage!,
                   style: TextStyle(
-                    color: _statusMessage!.startsWith('Profile updated')
+                    color: _statusMessage!.startsWith('Profile Updated successfully')
                         ? Colors.green
                         : Colors.red,
                   ),
