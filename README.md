@@ -16,3 +16,7 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 # devops_first_deploy
+
+## CI/CD Pipeline
+This project is configured with a local Jenkins CI/CD trigger. When changes are pushed to GitHub, a local Git `pre-push` hook automatically triggers the Jenkins pipeline (`my-pipeline`) in the Multipass VM.
+
