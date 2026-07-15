@@ -21,6 +21,24 @@ pipeline {
                 checkout scm
             }
         }
+        stage('Increment Version'){
+            steps{
+                script{
+                    echo 'Incrementing version...'
+                    sh 'dart pub global activate cider'
+                    sh 'cider bump minor'
+                    sh 'flutter clean'
+                    sh 'flutter pub get'
+                    readFile('pubspec.yaml').eachLine { line ->
+                        if (line.startsWith('version:')) {
+                            def version = line.split(':')[1].trim()
+                            env.IMAGE_TAG = version
+                            echo "New version: ${env.IMAGE_TAG}-${env.BUILD_NUMBER}"
+                          }
+                    }
+                }
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -29,6 +47,7 @@ pipeline {
                 '''
             }
         }
+        
 
         stage('Login to AWS ECR') {
             steps {
@@ -72,4 +91,4 @@ pipeline {
             }
         }
     }
-}
+} 
