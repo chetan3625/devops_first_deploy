@@ -21,24 +21,30 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Increment Version'){
-            steps{
-                script{
-                    echo 'Incrementing version...'
-                    sh 'dart pub global activate cider'
-                    sh 'cider bump minor'
-                    sh 'flutter clean'
-                    sh 'flutter pub get'
-                    readFile('pubspec.yaml').eachLine { line ->
-                        if (line.startsWith('version:')) {
-                            def version = line.split(':')[1].trim()
-                            env.IMAGE_TAG = version
-                            echo "New version: ${env.IMAGE_TAG}-${env.BUILD_NUMBER}"
-                          }
-                    }
-                }
-            }
+        stage('Increment Version') {
+    steps {
+        sh '''
+            dart pub global activate cider
+
+            export PATH="$PATH:$HOME/.pub-cache/bin"
+
+            cider bump minor
+
+            flutter pub get
+        '''
+
+        script {
+            def version = readFile('pubspec.yaml')
+                .readLines()
+                .find { it.startsWith('version:') }
+                .split(':')[1]
+                .trim()
+
+            env.IMAGE_TAG = version.replace('+','-')
+            echo "Version: ${env.IMAGE_TAG}"
         }
+    }
+}
 
         stage('Build Docker Image') {
             steps {
