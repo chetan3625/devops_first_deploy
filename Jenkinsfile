@@ -8,19 +8,29 @@ pipeline {
     environment {
         AWS_DEFAULT_REGION = 'us-east-1'
         ECR_ENDPOINT       = 'http://10.6.117.1:4566'
-
         ECR_REGISTRY       = '10.6.117.1:5100'
         ECR_REPOSITORY     = 'my-test-repo'
-
         IMAGE_NAME         = 'my-app'
         IMAGE_TAG          = 'latest'
     }
 
-
-
     stages {
 
-        stage('Login   t  o AWS ECR') {
+        stage('Checkout Source') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                '''
+            }
+        }
+
+        stage('Login to AWS ECR') {
             steps {
                 withCredentials([
                     string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
@@ -29,11 +39,10 @@ pipeline {
                     sh '''
                         aws ecr get-login-password \
                         --endpoint-url $ECR_ENDPOINT \
-                        --region $AWS_DEFAULT_REGION  \
+                        --region $AWS_DEFAULT_REGION \
                         | docker login \
-                       --username AWS \
+                        --username AWS \
                         --password-stdin $ECR_REGISTRY
-
                     '''
                 }
             }
@@ -42,15 +51,17 @@ pipeline {
         stage('Tag Docker Image') {
             steps {
                 sh '''
-                docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_REGISTRY/000000000000/us-east-1/$ECR_REPOSITORY:$IMAGE_TAG
-                 '''
+                    docker tag $IMAGE_NAME:$IMAGE_TAG \
+                    $ECR_REGISTRY/000000000000/us-east-1/$ECR_REPOSITORY:$IMAGE_TAG
+                '''
             }
         }
 
         stage('Push Docker Image to ECR') {
             steps {
                 sh '''
-                docker push $ECR_REGISTRY/000000000000/us-east-1/$ECR_REPOSITORY:$IMAGE_TAG 
+                    docker push \
+                    $ECR_REGISTRY/000000000000/us-east-1/$ECR_REPOSITORY:$IMAGE_TAG
                 '''
             }
         }
