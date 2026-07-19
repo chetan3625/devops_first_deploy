@@ -126,14 +126,27 @@ pipeline {
                 '''
             }
         }
+        stage('Deploy on EC2') {
+    steps {
+        sshagent(credentials: ['ec2-ssh-key']) {
+            sh """
+                ssh -o StrictHostKeyChecking=no -p 2200 ec2-user@10.6.117.1 '
+                    aws ecr get-login-password --endpoint-url ${ECR_ENDPOINT} --region ${AWS_DEFAULT_REGION} \
+                        | docker login --username AWS --password-stdin ${ECR_REGISTRY}
 
-        stage('Deploy') {
-            steps {
-                echo "Application Version : ${APP_VERSION}"
-                echo "Docker Image Tag    : ${IMAGE_TAG}"
-                echo "Deployment Completed Successfully."
-            }
+                    docker pull ${ECR_REGISTRY}/000000000000/us-east-1/${ECR_REPOSITORY}:${IMAGE_TAG}
+
+                    docker stop ${IMAGE_NAME} || true
+                    docker rm ${IMAGE_NAME} || true
+
+                    docker run -d --name ${IMAGE_NAME} -p 80:80 \
+                        ${ECR_REGISTRY}/000000000000/us-east-1/${ECR_REPOSITORY}:${IMAGE_TAG}
+                '
+            """
         }
+    }
+}
+
     }
 
     post {
