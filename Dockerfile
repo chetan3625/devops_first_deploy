@@ -15,4 +15,4 @@ COPY --from=build /web/build/web /usr/share/nginx/html
 
 EXPOSE 80
 
-CMD echo "Chetan, your docker image is created and available at http://localhost:8080" && nginx -g "daemon off;"
+CMD echo "Flutter web app started on port 80" && nginx -g "daemon off;"
